@@ -17,7 +17,7 @@ Creating a virtual variable, is not gonna save it into database
 is gonna get only the file name without extension
 === */
 ImageSchema.virtual('uniqueId')
-    .get(() => {
+    .get(function () {
         return this.filename.replace(path.extname(this.filename), '')
     });
 
