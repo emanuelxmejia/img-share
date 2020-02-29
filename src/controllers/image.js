@@ -2,31 +2,59 @@ const path = require('path');
 const { randomNumber } = require('../helpers/libs');
 const fs = require('fs-extra');
 
+const { Image } = require('../models');
+
 const controller = {};
 
 controller.index = (req, res) => {
 
 };
 
-controller.create = async (req, res) => {
-    const imgUrl = randomNumber();
-    console.log(imgUrl);
+controller.create = (req, res) => {
 
-    // get the image path
-    const imgTempPath =  req.file.path;
+    const saveImage = async () => {
+        const imgUrl = randomNumber();
 
-    // get image extension (example: png, jpg, jpge, etc...)
-    const ext = path.extname(req.file.originalname).toLocaleLowerCase();
+        // query to db
+        const images = await Image.find({ filename: imgUrl });
 
-    // path where the images are gonna save them
-    const targetPath = path.resolve(`src/public/upload/${imgUrl}${ext}`);
+        if (images.length > 0) {
+            saveImage();
+        } else {
+            console.log(imgUrl);
 
-    if(ext === '.png' || ext === '.jpg' || ext === '.jpeg' || ext === '.gif') {
-        // moving the file from a path to another one
-        await fs.rename(imgTempPath, targetPath);
-    }
+            // get the image path
+            const imgTempPath = req.file.path;
 
-    res.send('works');
+            // get image extension (example: png, jpg, jpge, etc...)
+            const ext = path.extname(req.file.originalname).toLocaleLowerCase();
+
+            // path where the images are gonna save them
+            const targetPath = path.resolve(`src/public/upload/${imgUrl}${ext}`);
+
+            if (ext === '.png' || ext === '.jpg' || ext === '.jpeg' || ext === '.gif') {
+                // moving the file from a path to another one
+                await fs.rename(imgTempPath, targetPath);
+                // creating a new object to save a new image into db
+                const newImg = new Image({
+                    title: req.body.title,
+                    filename: imgUrl + ext,
+                    description: req.body.description,
+                });
+                const imageSaved = await newImg.save();
+                // res.redirect('/images/');
+                res.send('works');
+            } else {
+                await fs.unlink(imgTempPath);
+                res.status(500).json({ error: 'Only images are allowed' });
+            }
+        }
+    };
+
+    saveImage();
+
+
+
 };
 
 controller.like = (req, res) => {

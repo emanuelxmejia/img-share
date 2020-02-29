@@ -1,5 +1,5 @@
 module.exports = {
     database: {
-        URI: 'mongodb://localhost/db-imgshare'
+        URI: 'mongodb://localhost/imgshare'
     }
 };
