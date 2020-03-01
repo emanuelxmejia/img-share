@@ -6,8 +6,15 @@ const { Image } = require('../models');
 
 const controller = {};
 
-controller.index = (req, res) => {
+controller.index = async (req, res) => {
+    // console.log('params: ', req.params.image_id);
 
+    /* ===
+    doing a query to db using regex(regular expresions)
+    === */
+    const image = await Image.findOne({ filename: { $regex: req.params.image_id } });
+    console.log(image);
+    res.render('image', { image });
 };
 
 controller.create = (req, res) => {
@@ -42,8 +49,7 @@ controller.create = (req, res) => {
                     description: req.body.description,
                 });
                 const imageSaved = await newImg.save();
-                // res.redirect('/images/');
-                res.send('works');
+                res.redirect('/images/' + imgUrl);
             } else {
                 await fs.unlink(imgTempPath);
                 res.status(500).json({ error: 'Only images are allowed' });
@@ -52,9 +58,6 @@ controller.create = (req, res) => {
     };
 
     saveImage();
-
-
-
 };
 
 controller.like = (req, res) => {
