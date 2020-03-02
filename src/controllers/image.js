@@ -1,13 +1,14 @@
 const path = require('path');
 const { randomNumber } = require('../helpers/libs');
 const fs = require('fs-extra');
+const md5 = require('md5');
 
-const { Image } = require('../models');
+const { Image, Comment } = require('../models');
 
 const controller = {};
 
 controller.index = async (req, res) => {
-    // console.log('params: ', req.params.image_id);
+    console.log('params: ', req.params.image_id);
 
     /* ===
     doing a query to db using regex(regular expresions)
@@ -49,6 +50,7 @@ controller.create = (req, res) => {
                     description: req.body.description,
                 });
                 const imageSaved = await newImg.save();
+                
                 res.redirect('/images/' + imgUrl);
             } else {
                 await fs.unlink(imgTempPath);
@@ -64,8 +66,17 @@ controller.like = (req, res) => {
 
 };
 
-controller.comment = (req, res) => {
+controller.comment = async (req, res) => {
+    const image = await Image.findOne({ filename: { $regex: req.params.image_id }});
 
+    if(image) {
+        const newComment = new Comment(req.body);
+        newComment.gravatar = md5(newComment.email);
+        newComment.image_id = image._id;
+        console.log(newComment);
+        await newComment.save();
+        res.redirect('/images/' + image.uniqueId);
+    }
 };
 
 controller.delete = (req, res) => {
