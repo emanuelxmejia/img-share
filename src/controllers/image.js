@@ -14,8 +14,9 @@ controller.index = async (req, res) => {
     doing a query to db using regex(regular expresions)
     === */
     const image = await Image.findOne({ filename: { $regex: req.params.image_id } });
-    console.log(image);
-    res.render('image', { image });
+    // console.log(image);
+    const comments = await Comment.find({ image_id: image._id });
+    res.render('image', { image, comments });
 };
 
 controller.create = (req, res) => {
