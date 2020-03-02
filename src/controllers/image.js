@@ -8,15 +8,26 @@ const { Image, Comment } = require('../models');
 const controller = {};
 
 controller.index = async (req, res) => {
-    console.log('params: ', req.params.image_id);
+    const viewModel = { image: {}, comments: {} };
 
     /* ===
     doing a query to db using regex(regular expresions)
     === */
     const image = await Image.findOne({ filename: { $regex: req.params.image_id } });
-    // console.log(image);
-    const comments = await Comment.find({ image_id: image._id });
-    res.render('image', { image, comments });
+    
+    if(image) {
+        // update the number of view in image
+        image.views = image.views + 1;
+        viewModel.image = image;
+        await image.save();
+
+        // get comments from bd
+        const comments = await Comment.find({ image_id: image._id });
+        viewModel.comments = comments;
+        res.render('image', viewModel);
+    } else {
+        res.redirect('/');
+    }
 };
 
 controller.create = (req, res) => {
@@ -77,6 +88,8 @@ controller.comment = async (req, res) => {
         console.log(newComment);
         await newComment.save();
         res.redirect('/images/' + image.uniqueId);
+    } else {
+        res.redirect('/');
     }
 };
 
