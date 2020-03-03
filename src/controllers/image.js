@@ -74,8 +74,16 @@ controller.create = (req, res) => {
     saveImage();
 };
 
-controller.like = (req, res) => {
+controller.like = async (req, res) => {
+    const image = await Image.findOne({ filename: { $regex: req.params.image_id } });
 
+    if(image) {
+        image.likes =  image.likes + 1;
+        await image.save();
+        res.json({ likes: image.likes });
+    } else {
+        res.status(500).json({ error: 'Internal Error' });
+    }
 };
 
 controller.comment = async (req, res) => {
